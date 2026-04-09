@@ -16,8 +16,8 @@ DOTFILES_DIR=$(dirname "$(realpath "$0")")
 
 # Ensure submodules are initialized and up to date
 git -C "$DOTFILES_DIR" submodule update --init --recursive
-git -C "$DOTFILES_DIR" checkout main
-git -C "$DOTFILES_DIR" branch --set-upstream-to=origin/main
+git -C "$DOTFILES_DIR/shared" checkout main
+git -C "$DOTFILES_DIR/shared" branch --set-upstream-to=origin/main
 
 # Remove broken symlinks pointing into dotfiles (shared or local)
 cleanup_broken_symlinks() {
