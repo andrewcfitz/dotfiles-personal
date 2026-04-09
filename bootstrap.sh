@@ -78,22 +78,6 @@ export PATH="/opt/homebrew/bin:$PATH"
 brew bundle --file=~/.Brewfile
 brew bundle --file=~/.Brewfile.shared
 
-# Install PowerShell via binary archive (recommended method for modern macOS)
-if ! [ -x "$(command -v pwsh)" ]; then
-    echo "Installing PowerShell..."
-    PWSH_VERSION="7.5.5"
-    PWSH_PKG="powershell-${PWSH_VERSION}-osx-arm64.tar.gz"
-    curl -L -o /tmp/powershell.tar.gz "https://github.com/PowerShell/PowerShell/releases/download/v${PWSH_VERSION}/${PWSH_PKG}"
-    sudo mkdir -p /usr/local/microsoft/powershell/7
-    sudo tar zxf /tmp/powershell.tar.gz -C /usr/local/microsoft/powershell/7
-    sudo chmod +x /usr/local/microsoft/powershell/7/pwsh
-    sudo ln -sf /usr/local/microsoft/powershell/7/pwsh /usr/local/bin/pwsh
-    rm /tmp/powershell.tar.gz
-    echo "PowerShell installed."
-else
-    echo "PowerShell is already installed."
-fi
-
 # Install iTerm2 AI plugin
 ITERM_AI_DIR="$HOME/Library/Application Support/iTerm2/Scripts/AutoLaunch/iTermAI"
 if [ ! -d "$ITERM_AI_DIR" ]; then
@@ -106,6 +90,3 @@ if [ ! -d "$ITERM_AI_DIR" ]; then
 else
     echo "iTerm2 AI plugin is already installed."
 fi
-
-# Configure secrets from 1Password (skips gracefully if op is not authenticated)
-"$DOTFILES_DIR/bin/setup-secrets"
