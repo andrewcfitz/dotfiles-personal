@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+"""DVD logo bouncing screensaver - 5x20 ASCII window."""
+import time
+import sys
+
+# 1-line DVD logo, 3 chars wide
+LOGO = ["DVD"]
+LOGO_H = len(LOGO)
+LOGO_W = len(LOGO[0])
+
+# Window: 5 rows x 20 cols (with border)
+WIN_H = 5
+WIN_W = 20
+INNER_H = WIN_H - 2  # 3 usable rows
+INNER_W = WIN_W - 2  # 18 usable cols
+
+# Logo travel range
+MAX_X = INNER_W - LOGO_W   # 15
+MAX_Y = INNER_H - LOGO_H   # 2
+
+COLORS = [
+    "\033[91m",  # bright red
+    "\033[92m",  # bright green
+    "\033[93m",  # bright yellow
+    "\033[94m",  # bright blue
+    "\033[95m",  # bright magenta
+    "\033[96m",  # bright cyan
+]
+RESET       = "\033[0m"
+HIDE_CURSOR = "\033[?25l"
+SHOW_CURSOR = "\033[?25h"
+SAVE_CURSOR = "\033[s"
+HOME        = "\033[u"
+
+
+def draw(x: int, y: int, color: str) -> None:
+    out = [HOME, "+" + "-" * INNER_W + "+\n"]
+    for row in range(INNER_H):
+        if y <= row < y + LOGO_H:
+            logo_line = LOGO[row - y]
+            line = "|" + " " * x + color + logo_line + RESET + " " * (INNER_W - x - LOGO_W) + "|\n"
+        else:
+            line = "|" + " " * INNER_W + "|\n"
+        out.append(line)
+    out.append("+" + "-" * INNER_W + "+\n")
+    sys.stdout.write("".join(out))
+    sys.stdout.flush()
+
+
+def main() -> None:
+    sys.stdout.write(HIDE_CURSOR)
+    sys.stdout.write(SAVE_CURSOR)
+
+    x, y = 0, 0
+    dx, dy = 1, 1
+    color_idx = 0
+
+    try:
+        while True:
+            draw(x, y, COLORS[color_idx % len(COLORS)])
+
+            nx = x + dx
+            ny = y + dy
+
+            x_hit = nx < 0 or nx > MAX_X
+            y_hit = ny < 0 or ny > MAX_Y
+
+            if x_hit:
+                dx = -dx
+                nx = max(0, min(MAX_X, nx))
+            if y_hit:
+                dy = -dy
+                ny = max(0, min(MAX_Y, ny))
+
+            if x_hit and y_hit:
+                color_idx = (color_idx + 1) % len(COLORS)
+
+            x, y = nx, ny
+            time.sleep(0.15)
+
+    except KeyboardInterrupt:
+        pass
+    finally:
+        sys.stdout.write(SHOW_CURSOR)
+        sys.stdout.write(RESET)
+        print()
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<EOF
+Usage: clone-repo <repo-url> [directory]
+
+Clone a git repository into a bare + worktree structure for use with
+git worktrees. This allows multiple branches to be checked out
+simultaneously in separate directories.
+
+Arguments:
+  repo-url    URL of the repository to clone (SSH or HTTPS)
+  directory   Local directory name (default: derived from repo-url)
+
+Structure created:
+  <directory>/
+  ├── .bare/        bare git repo (all git data lives here)
+  ├── .git          file pointing to .bare (enables git commands from parent)
+  └── <branch>/     worktree for the default branch (main, master, etc.)
+
+Examples:
+  clone-repo git@github.com:user/myrepo.git
+  clone-repo https://github.com/user/myrepo.git myrepo
+  clone-repo git@github.com:user/myrepo.git ~/projects/myrepo
+
+Adding worktrees after cloning:
+  cd <directory>
+  git worktree add <branch-name>           # new branch
+  git worktree add <branch-name> origin/<branch-name>  # existing remote branch
+EOF
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  usage
+  exit 0
+fi
+
+if [[ $# -lt 1 ]]; then
+  usage >&2
+  exit 1
+fi
+
+REPO_URL="$1"
+
+# Derive repo name from URL (strip .git suffix if present)
+REPO_NAME="${2:-$(basename "$REPO_URL" .git)}"
+
+if [[ -e "$REPO_NAME" ]]; then
+  echo "Error: '$REPO_NAME' already exists"
+  exit 1
+fi
+
+echo "Setting up worktree structure for '$REPO_NAME'..."
+
+# Clone as bare repo into <repo-name>/.bare
+git clone --bare "$REPO_URL" "$REPO_NAME/.bare"
+
+# Create a .git file pointing to the bare repo so git commands work from <repo-name>/
+echo "gitdir: ./.bare" > "$REPO_NAME/.git"
+
+# Ensure the bare repo's worktrees are fetched correctly
+git -C "$REPO_NAME/.bare" config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+git -C "$REPO_NAME/.bare" fetch origin
+
+# Detect the default branch (main, master, or whatever the remote HEAD points to)
+DEFAULT_BRANCH=$(git -C "$REPO_NAME/.bare" symbolic-ref --short HEAD 2>/dev/null || echo "main")
+
+# Checkout the default branch into a folder of the same name
+git -C "$REPO_NAME/.bare" worktree add "../$DEFAULT_BRANCH" "$DEFAULT_BRANCH"
+
+# Set upstream tracking so git pull works without arguments
+git -C "$REPO_NAME/.bare" branch --set-upstream-to="origin/$DEFAULT_BRANCH" "$DEFAULT_BRANCH"
+
+echo ""
+echo "Done! Structure:"
+echo "  $REPO_NAME/"
+echo "  ├── .bare/        (bare git repo)"
+echo "  ├── .git          (points to .bare)"
+echo "  └── $DEFAULT_BRANCH/       (worktree for $DEFAULT_BRANCH branch)"
+echo ""
+echo "To add a new branch worktree:"
+echo "  cd $REPO_NAME"
+echo "  git worktree add <branch-name>"

@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+tmp=$(mktemp)
+trap 'rm -f "$tmp"' EXIT
+
+subcommand="${1:-}"
+
+case "$subcommand" in
+  weekly-summary)
+    label="Weekly summary"
+    cmd="weekly-summary"
+    ;;
+  *)
+    echo "Usage: brainpal <subcommand>" >&2
+    echo "Subcommands: weekly-summary" >&2
+    exit 1
+    ;;
+esac
+
+echo "Running $label..."
+echo ""
+
+$cmd > "$tmp" 2>&1 &
+CMD_PID=$!
+
+brain &
+BRAIN_PID=$!
+
+wait "$CMD_PID"
+CMD_EXIT=$?
+
+kill "$BRAIN_PID" 2>/dev/null || true
+wait "$BRAIN_PID" 2>/dev/null || true
+clear
+
+if [[ "$CMD_EXIT" -eq 0 ]]; then
+  echo "$label done!"
+  echo ""
+  cat "$tmp"
+else
+  echo "Error running $subcommand." >&2
+  cat "$tmp" >&2
+  exit 1
+fi

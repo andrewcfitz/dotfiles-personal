@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Cached wrapper for ccusage daily + weekly cost.
+# Outputs: "$X.XX ($Y.YY)" where X.XX is today's cost and Y.YY is this week's total.
+# Cache expires every 30 minutes.
+CACHE_FILE="${TMPDIR:-/tmp}/ccusage_today_cache"
+MAX_AGE=1800  # 30 minutes in seconds
+
+if [[ -f "$CACHE_FILE" ]]; then
+    cache_age=$(( $(date +%s) - $(stat -f %m "$CACHE_FILE") ))
+    if [[ $cache_age -lt $MAX_AGE ]]; then
+        cat "$CACHE_FILE"
+        exit 0
+    fi
+fi
+
+result=$(python3 << 'PYEOF'
+import subprocess, json
+from datetime import date, timedelta
+
+def fetch(args):
+    r = subprocess.run(['ccusage'] + args + ['--json'], capture_output=True, text=True)
+    try:
+        return json.loads(r.stdout)
+    except Exception:
+        return {}
+
+today = date.today()
+monday = today - timedelta(days=today.weekday())
+
+daily  = fetch(['daily',  '--since', today.strftime('%Y%m%d')])
+weekly = fetch(['daily',  '--since', monday.strftime('%Y%m%d')])
+
+day_cost  = daily.get('totals',  {}).get('totalCost', 0)
+week_cost = weekly.get('totals', {}).get('totalCost', 0)
+
+print(f'${day_cost:.2f} (${week_cost:.2f})')
+PYEOF
+)
+
+if [[ -n "$result" ]]; then
+    printf '%s' "$result" > "$CACHE_FILE"
+    echo "$result"
+fi

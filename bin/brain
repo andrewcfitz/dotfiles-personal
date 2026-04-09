@@ -1,0 +1,91 @@
+#!/usr/bin/env python3
+"""Brain emoji bouncing screensaver - cycles emoji on corner hits."""
+import signal
+import time
+import sys
+
+# All wide characters (2 terminal columns each)
+EMOJIS = [
+    "🧠",  # brain (start)
+    "💀",  # skull
+    "👽",  # alien
+    "🤡",  # clown
+    "💩",  # poop
+    "🫠",  # melting face
+    "🤯",  # exploding head
+    "😵",  # dizzy
+]
+LOGO_H = 1
+LOGO_W = 2  # all wide characters take 2 columns
+
+# Window: 5 rows x 20 cols (with border)
+WIN_H = 5
+WIN_W = 20
+INNER_H = WIN_H - 2  # 3 usable rows
+INNER_W = WIN_W - 2  # 18 usable cols
+
+# Logo travel range
+MAX_X = INNER_W - LOGO_W
+MAX_Y = INNER_H - LOGO_H
+
+HIDE_CURSOR = "\033[?25l"
+SHOW_CURSOR = "\033[?25h"
+SAVE_CURSOR = "\033[s"
+HOME        = "\033[u"
+
+
+def draw(x: int, y: int, emoji: str) -> None:
+    out = [HOME, "+" + "-" * INNER_W + "+\n"]
+    for row in range(INNER_H):
+        if row == y:
+            line = "|" + " " * x + emoji + " " * (INNER_W - x - LOGO_W) + "|\n"
+        else:
+            line = "|" + " " * INNER_W + "|\n"
+        out.append(line)
+    out.append("+" + "-" * INNER_W + "+\n")
+    sys.stdout.write("".join(out))
+    sys.stdout.flush()
+
+
+def main() -> None:
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
+
+    sys.stdout.write(HIDE_CURSOR)
+    sys.stdout.write(SAVE_CURSOR)
+
+    x, y = 0, 0
+    dx, dy = 1, 1
+    emoji_idx = 0
+
+    try:
+        while True:
+            draw(x, y, EMOJIS[emoji_idx])
+
+            nx = x + dx
+            ny = y + dy
+
+            x_hit = nx < 0 or nx > MAX_X
+            y_hit = ny < 0 or ny > MAX_Y
+
+            if x_hit:
+                dx = -dx
+                nx = max(0, min(MAX_X, nx))
+            if y_hit:
+                dy = -dy
+                ny = max(0, min(MAX_Y, ny))
+
+            if x_hit and y_hit:
+                emoji_idx = (emoji_idx + 1) % len(EMOJIS)
+
+            x, y = nx, ny
+            time.sleep(0.15)
+
+    except KeyboardInterrupt:
+        pass
+    finally:
+        sys.stdout.write(SHOW_CURSOR)
+        print()
+
+
+if __name__ == "__main__":
+    main()
