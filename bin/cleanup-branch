@@ -2,47 +2,31 @@
 set -euo pipefail
 
 usage() {
-  echo "Usage: cleanup-branch [-f] <ISSUE-ID>"
-  echo "       cleanup-branch [-f] --branch <name>"
+  echo "Usage: cleanup-branch [-f] <branch-name>"
   echo ""
-  echo "  <ISSUE-ID>      Linear issue ID (e.g. EDA-123)"
-  echo "  --branch <name> Ad-hoc branch name"
-  echo "  -f              Force removal even if there are unpushed changes"
+  echo "  <branch-name>  Name of the branch/worktree to remove"
+  echo "  -f             Force removal even if there are unpushed changes"
   exit 1
 }
 
 # ── Argument parsing ────────────────────────────────────────────────────────
 
 FORCE=0
-MODE=""
-ISSUE_ID=""
-BRANCH_NAME=""
+BRANCH=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --help|-h) usage ;;
     -f) FORCE=1; shift ;;
-    --branch)
-      [[ $# -lt 2 || -z "${2:-}" ]] && { echo "Error: --branch requires a name."; usage; }
-      MODE=branch
-      BRANCH_NAME="$2"
-      shift 2
-      ;;
     *)
-      NORMALIZED=$(echo "$1" | tr '[:lower:]' '[:upper:]')
-      if [[ "$NORMALIZED" =~ ^[A-Z]+-[0-9]+$ ]]; then
-        MODE=issue
-        ISSUE_ID="$NORMALIZED"
-      else
-        echo "Error: '$1' is not a valid issue ID (expected e.g. EDA-123) or --branch flag."
-        usage
-      fi
+      [[ -n "$BRANCH" ]] && { echo "Error: unexpected argument '$1'."; usage; }
+      BRANCH="$1"
       shift
       ;;
   esac
 done
 
-[[ -z "$MODE" ]] && usage
+[[ -z "$BRANCH" ]] && usage
 
 # ── Repo detection ──────────────────────────────────────────────────────────
 
@@ -57,55 +41,28 @@ else
   REPO_TYPE=normal
 fi
 
-# ── Resolve branch and worktree path ────────────────────────────────────────
+# ── Resolve worktree path ──────────────────────────────────────────────────
 
-if [[ "$MODE" == issue ]]; then
-  IDENTIFIER_LOWER=$(echo "$ISSUE_ID" | tr '[:upper:]' '[:lower:]')
-  WORKTREE_DIR="$IDENTIFIER_LOWER"
-  # Find the actual branch name from the worktree
-  if [[ "$REPO_TYPE" == pseudo-bare ]]; then
-    REPO_ROOT=$(cd "$GIT_COMMON_DIR/.." && pwd)
-    WORKTREE_PATH="$REPO_ROOT/$WORKTREE_DIR"
-  else
-    REPO_ROOT=$(git rev-parse --show-toplevel)
-    if [[ -d "$REPO_ROOT/.worktrees" ]]; then
-      WORKTREE_PATH="$REPO_ROOT/.worktrees/$WORKTREE_DIR"
-    elif [[ -d "$REPO_ROOT/worktrees" ]]; then
-      WORKTREE_PATH="$REPO_ROOT/worktrees/$WORKTREE_DIR"
-    else
-      echo "Error: No worktree directory found."
-      exit 1
-    fi
-  fi
-  # Read the branch name from the worktree
-  if [[ -d "$WORKTREE_PATH" ]]; then
-    BRANCH=$(git -C "$WORKTREE_PATH" rev-parse --abbrev-ref HEAD 2>/dev/null) \
-      || { echo "Error: Could not determine branch in worktree at $WORKTREE_PATH."; exit 1; }
-  else
-    echo "Error: No worktree found at $WORKTREE_PATH."
-    exit 1
-  fi
+WORKTREE_DIR="$BRANCH"
+
+if [[ "$REPO_TYPE" == pseudo-bare ]]; then
+  REPO_ROOT=$(cd "$GIT_COMMON_DIR/.." && pwd)
+  WORKTREE_PATH="$REPO_ROOT/$WORKTREE_DIR"
 else
-  BRANCH="$BRANCH_NAME"
-  WORKTREE_DIR="$BRANCH"
-  if [[ "$REPO_TYPE" == pseudo-bare ]]; then
-    REPO_ROOT=$(cd "$GIT_COMMON_DIR/.." && pwd)
-    WORKTREE_PATH="$REPO_ROOT/$WORKTREE_DIR"
+  REPO_ROOT=$(git rev-parse --show-toplevel)
+  if [[ -d "$REPO_ROOT/.worktrees" ]]; then
+    WORKTREE_PATH="$REPO_ROOT/.worktrees/$WORKTREE_DIR"
+  elif [[ -d "$REPO_ROOT/worktrees" ]]; then
+    WORKTREE_PATH="$REPO_ROOT/worktrees/$WORKTREE_DIR"
   else
-    REPO_ROOT=$(git rev-parse --show-toplevel)
-    if [[ -d "$REPO_ROOT/.worktrees" ]]; then
-      WORKTREE_PATH="$REPO_ROOT/.worktrees/$WORKTREE_DIR"
-    elif [[ -d "$REPO_ROOT/worktrees" ]]; then
-      WORKTREE_PATH="$REPO_ROOT/worktrees/$WORKTREE_DIR"
-    else
-      echo "Error: No worktree directory found."
-      exit 1
-    fi
-  fi
-  if [[ ! -d "$WORKTREE_PATH" ]]; then
-    echo "Error: No worktree found at $WORKTREE_PATH."
+    echo "Error: No worktree directory found."
     exit 1
   fi
+fi
+
+if [[ ! -d "$WORKTREE_PATH" ]]; then
+  echo "Error: No worktree found at $WORKTREE_PATH."
+  exit 1
 fi
 
 # ── Safety checks ────────────────────────────────────────────────────────────
