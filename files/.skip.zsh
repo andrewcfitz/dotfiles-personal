@@ -19,6 +19,31 @@ skip() {
     case "$arg" in
       --ssh)           use_ssh=true ;;
       --list-sessions) list_sessions=true ;;
+      --help)
+        cat <<'EOF'
+Usage: skip [session] [options]
+
+Connect to a named tmux session on the Mac Studio.
+Attaches to an existing session or creates a new one.
+New sessions start in ~/workspace.
+
+Arguments:
+  session              Session name to attach or create.
+                       If omitted, a friendly name is auto-generated.
+
+Options:
+  --list-sessions      List active tmux sessions on the Mac Studio.
+  --ssh                Use SSH instead of EternalTerminal.
+  --help               Show this help message.
+
+Examples:
+  skip                 Auto-create a session (e.g. swift-ember)
+  skip my-project      Attach to or create session "my-project"
+  skip --list-sessions List all active sessions
+  skip my-project --ssh  Connect via SSH instead of et
+EOF
+        return 0
+        ;;
       *)
         if [[ -z "$session_name" ]]; then
           session_name="$arg"
@@ -61,7 +86,7 @@ _skip() {
   local is_local=false
   [[ "$(hostname -s)" == "${SKIP_HOST%%.*}" ]] && is_local=true
 
-  opts=('--list-sessions:List active tmux sessions on Mac Studio' '--ssh:Use SSH instead of EternalTerminal')
+  opts=('--list-sessions:List active tmux sessions on Mac Studio' '--ssh:Use SSH instead of EternalTerminal' '--help:Show help message')
 
   if [[ "$words[CURRENT]" == -* ]]; then
     _describe 'option' opts
