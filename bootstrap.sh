@@ -2,6 +2,10 @@
 
 set -e
 
+./init.sh
+
+DOTFILES_DIR=$(dirname "$(realpath "$0")")
+
 # Install Homebrew if not already installed
 if ! [ -x "$(command -v /opt/homebrew/bin/brew)" ] > /dev/null; then
     echo "Homebrew not found. Installing..."
@@ -11,13 +15,6 @@ else
 fi
 
 defaults write com.apple.dock autohide -bool true && killall Dock
-
-DOTFILES_DIR=$(dirname "$(realpath "$0")")
-
-# Ensure submodules are initialized and up to date
-git -C "$DOTFILES_DIR" submodule update --init --recursive
-git -C "$DOTFILES_DIR/shared" checkout main
-git -C "$DOTFILES_DIR/shared" branch --set-upstream-to=origin/main
 
 # Remove broken symlinks pointing into dotfiles (shared or local)
 cleanup_broken_symlinks() {
@@ -77,6 +74,8 @@ export PATH="/opt/homebrew/bin:$PATH"
 # Install Homebrew packages
 brew bundle --file=~/.Brewfile
 brew bundle --file=~/.Brewfile.shared
+
+~/.osx
 
 # Install iTerm2 AI plugin
 ITERM_AI_DIR="$HOME/Library/Application Support/iTerm2/Scripts/AutoLaunch/iTermAI"

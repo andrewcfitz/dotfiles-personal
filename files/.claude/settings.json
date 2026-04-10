@@ -47,9 +47,7 @@
     "command": "bash ~/.claude/statusline-command.sh"
   },
   "enabledPlugins": {
-    "superpowers@claude-plugins-official": true,
-    "linear@claude-plugins-official": true,
-    "slack@claude-plugins-official": true
+    "superpowers@claude-plugins-official": true
   },
   "skipDangerousModePermissionPrompt": true
 }

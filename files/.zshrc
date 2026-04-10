@@ -1,5 +1,5 @@
 [[ -f ~/.zshrc.shared ]] && source ~/.zshrc.shared
 
-export PATH="$PATH:$HOME/workspace/dotfiles/shared/bin"
+export PATH="$PATH:$HOME/workspace/dotfiles/bin"
 
-[[ -f ~/.awslogin.zsh ]] && source ~/.awslogin.zsh
+[[ -f ~/.devbox.zsh ]] && source ~/.devbox.zsh
