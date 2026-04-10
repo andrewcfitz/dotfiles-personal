@@ -77,6 +77,12 @@ brew bundle --file=~/.Brewfile.shared
 
 ~/.osx
 
+# Set PATH in sshd_config so non-interactive SSH sessions can find Homebrew binaries (required for et)
+if ! sudo grep -q 'SetEnv PATH=' /etc/ssh/sshd_config; then
+    echo 'SetEnv PATH=/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin' | sudo tee -a /etc/ssh/sshd_config
+    sudo launchctl kickstart -k system/com.openssh.sshd
+fi
+
 # Start Eternal Terminal server at login
 brew services start et
 
