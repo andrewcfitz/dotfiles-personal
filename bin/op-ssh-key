@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+OP_REF="op://fitz-biz/id_ed25519/private key"
+OUTPUT_FILE="${HOME}/.ssh/id_ed25519"
+
+usage() {
+  cat <<EOF
+Usage: op-ssh-key [output-file]
+
+Reads the SSH private key from 1Password ('$OP_REF') and writes it
+to disk with correct permissions.
+
+Arguments:
+  output-file   Path to write the key (default: $OUTPUT_FILE)
+EOF
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  usage
+  exit 0
+fi
+
+if [[ $# -gt 0 ]]; then
+  OUTPUT_FILE="$1"
+fi
+
+if ! command -v op &>/dev/null; then
+  echo "Error: 1Password CLI (op) not found in PATH" >&2
+  exit 1
+fi
+
+mkdir -p "$(dirname "$OUTPUT_FILE")"
+chmod 700 "$(dirname "$OUTPUT_FILE")"
+
+echo "Reading SSH key from 1Password..."
+KEY=$(op read "$OP_REF")
+
+if [[ -z "$KEY" ]]; then
+  echo "Error: could not retrieve key from '$OP_REF'" >&2
+  exit 1
+fi
+
+chmod 600 "$OUTPUT_FILE" 2>/dev/null || true
+printf '%s\n' "$KEY" > "$OUTPUT_FILE"
+chmod 600 "$OUTPUT_FILE"
+
+echo "SSH key written to $OUTPUT_FILE"
