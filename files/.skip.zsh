@@ -75,9 +75,9 @@ EOF
   if [[ "$is_local" == "true" ]]; then
     tmux attach-session -t "$session_name" 2>/dev/null || tmux new-session -s "$session_name" -c ~/workspace
   elif [[ "$use_ssh" == "true" ]]; then
-    ssh -t $SKIP_HOST "$tmux_cmd"
+    TERM=xterm-256color ssh -t $SKIP_HOST "$tmux_cmd"
   else
-    et $SKIP_HOST:2022 -c "$tmux_cmd"
+    TERM=xterm-256color et $SKIP_HOST:2022 -c "$tmux_cmd"
   fi
 }
 
