@@ -1,5 +1,10 @@
 {
-  "model": "sonnet-4-5-20250929[1m]",
+  "permissions": {
+    "allow": [
+      "Bash(clone-repo https://github.com/fitz-biz/louie-camp.git)"
+    ],
+    "defaultMode": "default"
+  },
   "hooks": {
     "UserPromptSubmit": [
       {
