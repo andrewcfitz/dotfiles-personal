@@ -4,3 +4,4 @@ cask "jetbrains-toolbox"
 
 # CLI tools
 brew "tmux"
+brew "et"

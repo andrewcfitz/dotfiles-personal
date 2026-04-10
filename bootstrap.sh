@@ -77,6 +77,9 @@ brew bundle --file=~/.Brewfile.shared
 
 ~/.osx
 
+# Start Eternal Terminal server at login
+brew services start et
+
 # Install iTerm2 AI plugin
 ITERM_AI_DIR="$HOME/Library/Application Support/iTerm2/Scripts/AutoLaunch/iTermAI"
 if [ ! -d "$ITERM_AI_DIR" ]; then
