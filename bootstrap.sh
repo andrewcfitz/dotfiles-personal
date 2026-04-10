@@ -86,6 +86,14 @@ fi
 # Start Eternal Terminal server at login
 brew services start et
 
+# Install Claude Code
+if ! command -v claude &> /dev/null; then
+    echo "Installing Claude Code..."
+    curl -fsSL https://claude.ai/install.sh | bash
+else
+    echo "Claude Code is already installed."
+fi
+
 # Install iTerm2 AI plugin
 ITERM_AI_DIR="$HOME/Library/Application Support/iTerm2/Scripts/AutoLaunch/iTermAI"
 if [ ! -d "$ITERM_AI_DIR" ]; then
