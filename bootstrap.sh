@@ -14,7 +14,7 @@ else
     echo "Homebrew is already installed."
 fi
 
-defaults write com.apple.dock autohide -bool true && killall Dock
+defaults write com.apple.dock autohide -bool true && killall Dock || true
 
 # Remove broken symlinks pointing into dotfiles (shared or local)
 cleanup_broken_symlinks() {
@@ -75,6 +75,25 @@ export PATH="/opt/homebrew/bin:$PATH"
 brew bundle --file=~/.Brewfile
 brew bundle --file=~/.Brewfile.shared
 
+# Register side-by-side dotnet SDKs installed by Homebrew
+DOTNET_MAIN="/opt/homebrew/opt/dotnet/libexec"
+for versioned in /opt/homebrew/opt/dotnet@*/libexec; do
+    [ "$versioned" = "$DOTNET_MAIN" ] && continue
+    for sdk in "$versioned/sdk/"*/; do
+        [ -d "$sdk" ] && ln -sfn "$sdk" "$DOTNET_MAIN/sdk/$(basename "$sdk")"
+    done
+    for host in "$versioned/host/fxr/"*/; do
+        [ -d "$host" ] && ln -sfn "$host" "$DOTNET_MAIN/host/fxr/$(basename "$host")"
+    done
+    for shared in "$versioned/shared/"*/; do
+        [ -d "$shared" ] || continue
+        framework=$(basename "$shared")
+        for ver in "$shared"*/; do
+            [ -d "$ver" ] && mkdir -p "$DOTNET_MAIN/shared/$framework" && ln -sfn "$ver" "$DOTNET_MAIN/shared/$framework/$(basename "$ver")"
+        done
+    done
+done
+
 ~/.osx
 
 # Set PATH in sshd_config so non-interactive SSH sessions can find Homebrew binaries (required for et)
@@ -84,7 +103,7 @@ if ! sudo grep -q 'SetEnv PATH=' /etc/ssh/sshd_config; then
 fi
 
 # Start Eternal Terminal server at login
-brew services start et
+sudo brew services start et
 
 # Install Claude Code
 if ! command -v claude &> /dev/null; then
