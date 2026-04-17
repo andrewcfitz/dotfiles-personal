@@ -2,9 +2,19 @@
 
 set -e
 
-./init.sh
+BREW_ONLY=0
+for arg in "$@"; do
+    case "$arg" in
+        --brew) BREW_ONLY=1 ;;
+        *) echo "Unknown option: $arg" >&2; exit 1 ;;
+    esac
+done
 
 DOTFILES_DIR=$(dirname "$(realpath "$0")")
+
+if [ $BREW_ONLY -eq 0 ]; then
+    ./init.sh
+fi
 
 # Install Homebrew if not already installed
 if ! [ -x "$(command -v /opt/homebrew/bin/brew)" ] > /dev/null; then
@@ -12,6 +22,13 @@ if ! [ -x "$(command -v /opt/homebrew/bin/brew)" ] > /dev/null; then
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 else
     echo "Homebrew is already installed."
+fi
+
+if [ $BREW_ONLY -eq 1 ]; then
+    export PATH="/opt/homebrew/bin:$PATH"
+    brew bundle --file=~/.Brewfile
+    brew bundle --file=~/.Brewfile.shared
+    exit 0
 fi
 
 defaults write com.apple.dock autohide -bool true && killall Dock || true
