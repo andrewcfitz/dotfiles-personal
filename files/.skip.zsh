@@ -1,5 +1,11 @@
 SKIP_HOST="andrew-mac-studio.fitzy.foo"
 
+__skip_reset_terminal() {
+  # Disable mouse-reporting modes left enabled by remote TUIs (tmux, vim, etc.)
+  # when the SSH/ET connection drops uncleanly (e.g. after hibernate).
+  printf '\033[?1000l\033[?1002l\033[?1003l\033[?1006l'
+}
+
 __skip_generate_name() {
   local -a adjectives nouns
   adjectives=(bold swift calm bright dark wild quick quiet sharp deep clear warm cold fast keen wise brave true fair strong)
@@ -76,8 +82,10 @@ EOF
     tmux attach-session -t "$session_name" 2>/dev/null || tmux new-session -s "$session_name" -c ~/workspace
   elif [[ "$use_ssh" == "true" ]]; then
     TERM=xterm-256color ssh -t $SKIP_HOST "$tmux_cmd"
+    __skip_reset_terminal
   else
     TERM=xterm-256color et $SKIP_HOST:2022 -c "$tmux_cmd"
+    __skip_reset_terminal
   fi
 }
 
