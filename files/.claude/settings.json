@@ -56,5 +56,8 @@
   },
   "skipDangerousModePermissionPrompt": true,
   "remoteControlAtStartup": true,
-  "agentPushNotifEnabled": true
+  "agentPushNotifEnabled": true,
+  "verbose": true,
+  "preferredNotifChannel": "iterm2",
+  "effortLevel": "medium"
 }
