@@ -54,5 +54,7 @@
   "enabledPlugins": {
     "superpowers@claude-plugins-official": true
   },
-  "skipDangerousModePermissionPrompt": true
+  "skipDangerousModePermissionPrompt": true,
+  "remoteControlAtStartup": true,
+  "agentPushNotifEnabled": true
 }
