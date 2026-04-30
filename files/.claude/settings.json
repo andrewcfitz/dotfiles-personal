@@ -54,10 +54,12 @@
   "enabledPlugins": {
     "superpowers@claude-plugins-official": true
   },
+  "effortLevel": "medium",
   "skipDangerousModePermissionPrompt": true,
-  "remoteControlAtStartup": true,
-  "agentPushNotifEnabled": true,
+  "editorMode": "normal",
   "verbose": true,
-  "preferredNotifChannel": "iterm2",
-  "effortLevel": "medium"
+  "preferredNotifChannel": "ghostty",
+  "autoCompactEnabled": true,
+  "remoteControlAtStartup": true,
+  "agentPushNotifEnabled": true
 }
