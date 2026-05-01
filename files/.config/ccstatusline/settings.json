@@ -12,9 +12,11 @@
         "type": "separator"
       },
       {
-        "id": "3",
-        "type": "context-length",
-        "color": "brightBlack"
+        "id": "1c8489ed-e61b-4966-a0e8-d3a68a6c0326",
+        "type": "context-bar",
+        "metadata": {
+          "display": "slider"
+        }
       },
       {
         "id": "4",
