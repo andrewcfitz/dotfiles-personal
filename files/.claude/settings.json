@@ -3,7 +3,7 @@
     "allow": [
       "Bash(clone-repo https://github.com/fitz-biz/louie-camp.git)"
     ],
-    "defaultMode": "default"
+    "defaultMode": "auto"
   },
   "hooks": {
     "UserPromptSubmit": [
