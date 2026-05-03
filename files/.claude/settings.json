@@ -61,5 +61,6 @@
   "preferredNotifChannel": "ghostty",
   "autoCompactEnabled": true,
   "remoteControlAtStartup": true,
-  "agentPushNotifEnabled": true
+  "agentPushNotifEnabled": true,
+  "skipAutoPermissionPrompt": true
 }
