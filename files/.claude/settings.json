@@ -1,9 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(clone-repo https://github.com/fitz-biz/louie-camp.git)"
+      "Bash(clone-repo https://github.com/fitz-biz/louie-camp.git)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(git *)"
     ],
-    "defaultMode": "default"
+    "defaultMode": "auto"
   },
   "hooks": {
     "UserPromptSubmit": [
