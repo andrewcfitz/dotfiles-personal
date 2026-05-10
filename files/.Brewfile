@@ -1,6 +1,8 @@
 # Applications
 cask "rectangle-pro"
 cask "jetbrains-toolbox"
+cask "blender"
+cask "openscad@snapshot"
 
 # CLI tools
 brew "tmux"
