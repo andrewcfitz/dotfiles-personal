@@ -1,6 +1,7 @@
 [[ -f ~/.zshrc.shared ]] && source ~/.zshrc.shared
 
 export PATH="$PATH:$HOME/workspace/dotfiles/bin"
+[[ -d "$HOME/.darkbloom/bin" ]] && export PATH="$PATH:$HOME/.darkbloom/bin"
 
 [[ -f ~/.devbox.zsh ]] && source ~/.devbox.zsh
 [[ -f ~/.skip.zsh ]] && source ~/.skip.zsh
