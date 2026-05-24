@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Restart the unbound DNS resolver on OPNsense firewalls via the OPNsense REST
+# API, using API key/secret pairs stored in 1Password (vault fitz-biz).
+
+VAULT="fitz-biz"
+# "name|host url|api-credential 1Password item id"
+FIREWALLS=(
+  "fitzy|https://firewall.fitzy.foo|irfmudacc5s4jq3dgk4gktinkm"
+  "fitzy-cloud|https://firewall.fitzy-cloud.foo|r43jrhrjpqglbmrinlkb3zqd2e"
+)
+
+prog="$(basename "$0")"
+
+usage() {
+  cat <<EOF
+Restart the unbound DNS resolver on one or more OPNsense firewalls.
+
+USAGE:
+  $prog [TARGET ...]      Restart unbound on the named firewall(s)
+  $prog                   Restart unbound on ALL firewalls (default)
+  $prog -l, --list        List available firewall targets
+  $prog -h, --help        Show this help
+
+TARGETS:
+EOF
+  for entry in "${FIREWALLS[@]}"; do
+    IFS='|' read -r name host _ <<<"$entry"
+    printf '  %-14s %s\n' "$name" "$host"
+  done
+  cat <<EOF
+
+EXAMPLES:
+  $prog                   # both firewalls
+  $prog fitzy             # just firewall.fitzy.foo
+  $prog fitzy fitzy-cloud # both, named explicitly
+
+Credentials are read from 1Password (vault: $VAULT); run 'op signin' first if needed.
+EOF
+}
+
+list_targets() {
+  for entry in "${FIREWALLS[@]}"; do
+    IFS='|' read -r name host _ <<<"$entry"
+    printf '%-14s %s\n' "$name" "$host"
+  done
+}
+
+# Return the FIREWALLS entry matching $1, or empty if none.
+find_firewall() {
+  local want="$1" entry name
+  for entry in "${FIREWALLS[@]}"; do
+    name="${entry%%|*}"
+    if [[ "$name" == "$want" ]]; then
+      printf '%s' "$entry"
+      return 0
+    fi
+  done
+  return 1
+}
+
+# --- argument parsing -------------------------------------------------------
+
+case "${1:-}" in
+  -h|--help) usage; exit 0 ;;
+  -l|--list) list_targets; exit 0 ;;
+esac
+
+selected=()
+if [[ $# -eq 0 ]]; then
+  selected=("${FIREWALLS[@]}")
+else
+  for arg in "$@"; do
+    if [[ "$arg" == -* ]]; then
+      echo "Error: unknown option '$arg'" >&2
+      echo "Try '$prog --help'." >&2
+      exit 2
+    fi
+    if entry="$(find_firewall "$arg")"; then
+      selected+=("$entry")
+    else
+      echo "Error: unknown target '$arg'" >&2
+      echo "Available targets:" >&2
+      list_targets >&2
+      exit 2
+    fi
+  done
+fi
+
+# --- dependency checks ------------------------------------------------------
+
+command -v op   >/dev/null || { echo "Error: 'op' (1Password CLI) not found" >&2; exit 1; }
+command -v jq   >/dev/null || { echo "Error: 'jq' not found" >&2; exit 1; }
+command -v curl >/dev/null || { echo "Error: 'curl' not found" >&2; exit 1; }
+
+# --- restart unbound --------------------------------------------------------
+
+failed=0
+for entry in "${selected[@]}"; do
+  IFS='|' read -r name host item <<<"$entry"
+
+  creds=$(op item get "$item" --vault "$VAULT" --reveal \
+            --fields username,credential --format json)
+  key=$(jq -r '.[] | select(.id=="username").value'   <<<"$creds")
+  secret=$(jq -r '.[] | select(.id=="credential").value' <<<"$creds")
+
+  resp=$(curl -k -sS -u "$key:$secret" -X POST \
+           "$host/api/unbound/service/restart" || true)
+  if [[ "$(jq -r '.response // empty' <<<"$resp" 2>/dev/null)" == "OK" ]]; then
+    echo "✓ $name ($host): unbound restarted"
+  else
+    echo "✗ $name ($host): failed — ${resp:-no response}" >&2
+    failed=1
+  fi
+done
+
+exit $failed
