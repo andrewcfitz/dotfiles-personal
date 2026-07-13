@@ -3,6 +3,7 @@ cask "rectangle-pro"
 cask "jetbrains-toolbox"
 cask "blender"
 cask "openscad@snapshot"
+cask "mountain-duck"
 
 # CLI tools
 brew "tmux"
