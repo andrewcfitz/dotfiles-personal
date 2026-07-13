@@ -4,6 +4,7 @@ cask "jetbrains-toolbox"
 cask "blender"
 cask "openscad@snapshot"
 cask "mountain-duck"
+cask "tailscale"
 
 # CLI tools
 brew "tmux"
