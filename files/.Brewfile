@@ -5,6 +5,7 @@ cask "blender"
 cask "openscad@snapshot"
 cask "mountain-duck"
 cask "tailscale"
+cask "kicad"
 
 # CLI tools
 brew "tmux"
