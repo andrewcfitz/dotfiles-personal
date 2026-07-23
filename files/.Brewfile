@@ -23,3 +23,6 @@ brew "talhelper"
 brew "sops"
 brew "age"
 brew "yq"
+
+# VS Code extensions
+vscode "JITX.jitx-vscode"
