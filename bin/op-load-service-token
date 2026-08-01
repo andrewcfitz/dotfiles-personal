@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# Loads the cached 1Password service account token into the environment.
+#
+# Source it:            source op-load-service-token
+# Or eval its output:   eval "$(op-load-service-token)"
+
+_op_load_service_token() {
+  local token_file="${OP_SERVICE_ACCOUNT_TOKEN_FILE:-${XDG_CACHE_HOME:-${HOME}/.cache}/op/service-account-token}"
+
+  if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    cat <<EOF
+Usage: eval "\$(op-load-service-token)"
+   or: source op-load-service-token
+
+Reads the cached service account token and exports OP_SERVICE_ACCOUNT_TOKEN.
+
+Reads: $token_file
+       (override with OP_SERVICE_ACCOUNT_TOKEN_FILE)
+
+Populate the cache first with: op-save-service-token
+EOF
+    return 0
+  fi
+
+  if [[ ! -f "$token_file" ]]; then
+    echo "Error: token file not found: $token_file" >&2
+    echo "Run 'op-save-service-token' on a machine with 1Password access." >&2
+    return 1
+  fi
+
+  local token
+  token=$(< "$token_file")
+  token="${token//[$'\r\n']/}"
+
+  if [[ -z "$token" ]]; then
+    echo "Error: token file is empty: $token_file" >&2
+    return 1
+  fi
+
+  # Sourced: export directly. Executed: print an export line for eval.
+  if [[ "${BASH_SOURCE[0]:-}" != "${0}" || -n "${ZSH_EVAL_CONTEXT:-}" ]]; then
+    export OP_SERVICE_ACCOUNT_TOKEN="$token"
+  else
+    printf 'export OP_SERVICE_ACCOUNT_TOKEN=%q\n' "$token"
+  fi
+}
+
+_op_load_service_token "$@"

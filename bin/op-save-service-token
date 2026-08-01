@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+OP_REF="op://fitz-biz/OP_SERVICE_ACCOUNT_TOKEN_RW/credential"
+CACHE_DIR="${XDG_CACHE_HOME:-${HOME}/.cache}/op"
+OUTPUT_FILE="${CACHE_DIR}/service-account-token"
+
+usage() {
+  cat <<EOF
+Usage: op-save-service-token [output-file]
+
+Reads the 1Password service account token from 1Password and writes it
+to a cache file for use on machines without interactive 1Password access.
+
+Reads:  $OP_REF
+Writes: $OUTPUT_FILE
+
+Load it into your environment with:
+  eval "\$(op-load-service-token)"
+
+Arguments:
+  output-file   Path to write the token (default: $OUTPUT_FILE)
+EOF
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  usage
+  exit 0
+fi
+
+if [[ $# -gt 0 ]]; then
+  OUTPUT_FILE="$1"
+fi
+
+if ! command -v op &>/dev/null; then
+  echo "Error: 1Password CLI (op) not found in PATH" >&2
+  exit 1
+fi
+
+mkdir -p "$(dirname "$OUTPUT_FILE")"
+chmod 700 "$(dirname "$OUTPUT_FILE")"
+
+echo "Reading service account token from 1Password..."
+# Unset any existing token so this always reads via the interactive session.
+TOKEN=$(env -u OP_SERVICE_ACCOUNT_TOKEN op read "$OP_REF")
+
+if [[ -z "$TOKEN" ]]; then
+  echo "Error: could not retrieve credential from '$OP_REF'" >&2
+  exit 1
+fi
+
+chmod 600 "$OUTPUT_FILE" 2>/dev/null || true
+printf '%s\n' "$TOKEN" > "$OUTPUT_FILE"
+chmod 600 "$OUTPUT_FILE"
+
+echo "Service account token written to $OUTPUT_FILE"
