@@ -67,6 +67,12 @@
         "repo": "aklofas/kicad-happy"
       },
       "autoUpdate": true
+    },
+    "jitx": {
+      "source": {
+        "source": "github",
+        "repo": "JITx-Inc/jitx-skills"
+      }
     }
   },
   "effortLevel": "medium",

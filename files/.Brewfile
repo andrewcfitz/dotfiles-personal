@@ -6,6 +6,7 @@ cask "openscad@snapshot"
 cask "mountain-duck"
 cask "tailscale"
 cask "kicad"
+cask "icon-composer"
 
 # CLI tools
 brew "tmux"
