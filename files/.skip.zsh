@@ -103,7 +103,7 @@ EOF
     TERM=xterm-256color ssh -t $host "$tmux_cmd"
     __skip_reset_terminal
   else
-    TERM=xterm-256color et $host:2022 -c "$tmux_cmd"
+    TERM=xterm-256color et -c "$tmux_cmd" $host:2022
     __skip_reset_terminal
   fi
 }
