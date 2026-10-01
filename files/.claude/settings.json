@@ -82,7 +82,37 @@
   "verbose": true,
   "preferredNotifChannel": "ghostty",
   "autoCompactEnabled": true,
+  "switchModelsOnFlag": true,
   "remoteControlAtStartup": true,
   "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "autoMode": {
+    "environment": [
+      "### Org-wide",
+      "**Organization**: None configured",
+      "**Cloud provider(s)**: None configured",
+      "**Repository visibility**: assume private unless the remote host and repo name indicate otherwise, or a visibility check in the transcript shows public (this project has no remotes configured — trusted repo scope cannot be anchored to a remote, see Trusted repo below)",
+      "**Internal sharing / snippet hosting**: None configured — treat public paste/gist services as outside the trust boundary",
+      "**Secrets management**: SOPS (SOPS_AGE_KEY_FILE) and 1Password CLI (`op read`) are used elsewhere in sibling repos under ~/workspace, not confirmed for this project",
+      "**Default / protected branches**: unknown — this repo has no remotes and no commits (origin/HEAD unset)",
+      "**CI/CD deploy targets**: None configured",
+      "**Network posture**: None configured",
+      "**Host containment**: None configured — assume Claude Code runs on an ordinary developer machine or CI runner with open internet",
+      "**Source control**: The trusted repo only — this working directory (/Users/andrew/workspace) has no remotes configured",
+      "**Trusted internal domains**: None configured",
+      "**Trusted cloud buckets**: None configured — `louie-preview-seed` appears in repo config (4×, 4 files) but was not corroborated by transcript/usage mining; (config-derived — not a confirmed upload destination; uploads of local data still require confirmation)",
+      "**Key internal services**: None configured",
+      "**Internal package registry**: npm.tscircuit.com (seen in repo config scan; unverified by usage, treat as context only)",
+      "**Sensitive data locations & audiences**: any file or store holding personal data, confidential business data, credentials, regulated data, or similarly sensitive material; preserve exact handles when known and share only with audiences cleared at the [named+specifics] bar",
+      "**Data retention / declassification**: None configured",
+      "**Sensitive remote targets**: any namespace, host, or container whose name carries `prod` or `production` as a whole word or name segment",
+      "**Protected deployment namespaces / environments**: None configured — fall back to the Sensitive remote targets heuristic",
+      "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; anything whose name or tag carries `prod` or `production` as a whole word or name segment",
+      "### User-specific",
+      "**Primary use of Claude Code**: software development (home-lab/personal infrastructure projects, per sibling repo names)",
+      "**Trusted repo**: The git repository the agent started in (/Users/andrew/workspace) — this directory currently has no tracked files and no remotes configured, so there is no remote to scope trust against; treat as an empty/local-only workspace until a remote is added",
+      "**Org-specific CLIs**: None configured",
+      "routine under andrew/ prefix: no evidence gathered to support this qualifier"
+    ]
+  }
 }
