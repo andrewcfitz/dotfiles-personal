@@ -22,11 +22,11 @@ done
 # whatever started it, so a server born under an unapproved app or a launch
 # agent hands "no route to host" to every shell inside it. Cost: the server
 # lives outside the GUI session, so pbcopy, open, and keychain prompts don't
-# work inside it. Only takes effect when launchd starts the server; an already
-# running server just gets the session added to it.
+# work inside it. -D keeps the server in the foreground so launchd owns it and
+# KeepAlive restarts it; otherwise a dead server gets replaced by whichever
+# login shell runs tmux next, with that shell's attribution.
 TMUX_DAEMON_LABEL="biz.fitz.tmux"
 TMUX_DAEMON_PLIST="/Library/LaunchDaemons/$TMUX_DAEMON_LABEL.plist"
-TMUX_DAEMON_SESSION="main"
 TMUX_DAEMON_TMP=$(mktemp)
 cat > "$TMUX_DAEMON_TMP" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -40,10 +40,7 @@ cat > "$TMUX_DAEMON_TMP" <<PLIST
     <key>ProgramArguments</key>
     <array>
         <string>$(brew --prefix)/bin/tmux</string>
-        <string>new-session</string>
-        <string>-d</string>
-        <string>-s</string>
-        <string>$TMUX_DAEMON_SESSION</string>
+        <string>-D</string>
     </array>
     <key>WorkingDirectory</key>
     <string>$HOME</string>
@@ -58,9 +55,10 @@ cat > "$TMUX_DAEMON_TMP" <<PLIST
     </dict>
     <key>RunAtLoad</key>
     <true/>
-    <!-- tmux forks the server and exits; without this launchd kills it. -->
-    <key>AbandonProcessGroup</key>
+    <key>KeepAlive</key>
     <true/>
+    <key>StandardErrorPath</key>
+    <string>/tmp/$TMUX_DAEMON_LABEL.err</string>
 </dict>
 </plist>
 PLIST
@@ -71,7 +69,7 @@ else
     sudo launchctl bootout "system/$TMUX_DAEMON_LABEL" &>/dev/null || true
     sudo install -m 644 -o root -g wheel "$TMUX_DAEMON_TMP" "$TMUX_DAEMON_PLIST"
     sudo launchctl bootstrap system "$TMUX_DAEMON_PLIST"
-    log_info "tmux launchd daemon installed (session '$TMUX_DAEMON_SESSION')"
-    log_warn "If a tmux server was already running, it still owns the sessions: run 'tmux kill-server' then 'sudo launchctl kickstart system/$TMUX_DAEMON_LABEL'"
+    log_info "tmux launchd daemon installed"
+    log_warn "If a tmux server was already running, it owns the socket: run 'tmux kill-server' and launchd will start its own"
 fi
 rm -f "$TMUX_DAEMON_TMP"
