@@ -114,5 +114,6 @@
       "**Org-specific CLIs**: None configured",
       "routine under andrew/ prefix: no evidence gathered to support this qualifier"
     ]
-  }
+  },
+  "advisorModel": "fable"
 }
